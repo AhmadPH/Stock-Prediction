@@ -4,7 +4,7 @@ from keras import regularizers
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from bokeh.plotting import output_file, figure, show
+#from bokeh.plotting import output_file, figure, show
 
 
 class NeuralNetwork:
@@ -33,7 +33,7 @@ class NeuralNetwork:
 
         # train model
 
-        model.fit(train, train_y, epochs=2000)
+        model.fit(train, train_y, epochs=100)
 
         model.save("models/model.h5", overwrite=True, include_optimizer=True)
 
@@ -73,5 +73,5 @@ class NeuralNetwork:
 
 
 if __name__ == "__main__":
-    model = NeuralNetwork(20, True)
+    model = NeuralNetwork(20, False)
     model.make_train_model()

@@ -24,6 +24,7 @@ class PreProcessing:
                 cat = pywt.threshold(ca, np.std(ca), mode="soft")
                 cdt = pywt.threshold(cd, np.std(cd), mode="soft")
                 tx = pywt.idwt(cat, cdt, "haar")
+
                 log = np.diff(np.log(tx))*100
                 macd = np.mean(x[5:]) - np.mean(x)
                 # ma = np.mean(x)

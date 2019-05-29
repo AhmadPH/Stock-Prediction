@@ -91,6 +91,6 @@ def nnmodel(epochs, regularizer1, regularizer2):
 
 
 if __name__ == "__main__":
-    dataset, average, std = nnmodel(500, 0.05, 0.01)
+    dataset, average, std = nnmodel(50, 0.05, 0.01)
     print(f"Price Accuracy Average = {average} \nPrice Accuracy Standard Deviation = {std}")
 

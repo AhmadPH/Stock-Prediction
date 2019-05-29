@@ -13,12 +13,6 @@ def get_stock_data(ticker,start,end):
     # plt.title('shoupan')
     # plt.show()
 
-    # get twitter data
-    # do your code here!
-
-    # get news data
-    # do your code here!
-
 
 if __name__ == "__main__":
     get_stock_data("AAPL", "2000-01-01", "2018-10-01")
