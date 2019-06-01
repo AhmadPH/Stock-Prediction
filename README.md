@@ -15,7 +15,7 @@ Group Project for Introduction to Machine Learning, Deng Zhihong, PKU
 - 小波变换
   - 方法：先做小波变换，变换波形haar
   
-  $$X_{\omega}(a,b) = \frac{1}{\sqrt{a}}\int x(t)\psi\left(\frac{t-b}{a}\right) dt$$
+  $$X_{\omega}(a,b) = \frac{1}{\sqrt{a}}\int x(t)\psi \left(\frac{t-b}{a} \right) \dt$$
   
   - 去除标准差意外的点
   - 做逆变换
