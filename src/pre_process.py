@@ -40,19 +40,9 @@ def get_feature_train_dataset(stock_data):
             tx = pywt.idwt(cat, cdt, "haar")
 
             log = np.diff(np.log(tx))*100 #求两天的差值，并求对数，用变化值
-
-            #macd = np.mean(x[5:]) - np.mean(x) # 后一半的变化趋势？
-            #sd = np.std(x) #这几天原始数据的标准差
-
             log_ret = np.append(log_ret, log)
-            #x_tech = np.append(macd*10, sd)
 
-            #train = np.append(train, x_tech)
-        #train_data.append(train)
         log_data.append(log_ret)
-
-    #trained = pd.DataFrame(train_data)
-    #trained.to_csv("./dataset/pre_processed/indicators.csv")
     log_data = pd.DataFrame(log_data, index=None)
     log_data.to_csv("./dataset/pre_processed/log_data.csv")
 
@@ -67,7 +57,7 @@ def get_feature_train_dataset(stock_data):
     for i in range((len(stock_data) // 10) * 10 - 11):
         y = stock_data.iloc[i+11, 5]
         data_y.append(y)
-    test_data_y = np.array(data_y)[int(0.25*len(data_y)+ 0.25*0.75*len(data_y)):]
+    test_data_y = np.array(data_y)[int((1-0.25)*0.8*len(data_y)+0.25*len(data_y)+1):]
     test_data_y = pd.DataFrame(test_data_y,index=None)
     test_data_y.to_csv("./dataset/pre_processed/test_data_y.csv")
 

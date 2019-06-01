@@ -1,12 +1,35 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from functools import partial
 
 from keras.datasets import mnist
 from keras.models import Model
 from keras.layers import Dense,Input
 from keras.utils.np_utils import to_categorical
+from keras.utils import plot_model
+from keras.callbacks import TensorBoard
 import matplotlib.pyplot as plt
+
+def tf_autoencoder(input_size):
+    X =tf.placeholder(tf.float32,shape=[None,input_size])
+    he_init = tf.contrib.layers.variance_scaling_initializer() 
+    l2_regularizer = tf.contrib.layers.l2_regularizer(0.001)
+    dense_layer = partial(tf.layers.dense, activation=tf.nn.relu,kernel_initializer=he_init,kernel_regularizer=l2_regularizer)
+
+    encoded1 = dense_layer(X, 40)
+    encoded2 = dense_layer(encoded1, 30)
+    encoded_output = dense_layer(encoded2, 20)
+
+    decoded1 = dense_layer(encoded_output, 30)
+    decoded2 = dense_layer(decoded1, 40)
+    decoded_output = dense_layer(decoded2, input_size)
+
+    reconstruction_loss = tf.reduce_mean(tf.square(decoded_output - X))
+
+    reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+    loss = tf.add_n([reconstruction_loss] + reg_losses)
+
 
 def build_autoencoder(input_size):
     # 预处理数据
@@ -36,8 +59,31 @@ def build_autoencoder(input_size):
     # 构建编码模型
     encoder = Model(inputs=input_, outputs=encoder_output)
 
-    auto_encoder.compile(optimizer='adam',loss='mean_squared_error')
-    auto_encoder.fit(feature_train_data,feature_train_data, epochs=200)
+    #plot_model(auto_encoder,to_file='./model/auto_encoder.png')
+    tb = TensorBoard(log_dir='./model/logs/auto_encoder/',histogram_freq=10,batch_size=11,write_graph=True,write_grads=False, write_images=True,embeddings_freq=0)
+    callbacks= [tb]
+
+    auto_encoder.compile(optimizer='adam',loss='mean_squared_error',metrics=['accuracy'])
+    history=auto_encoder.fit(feature_train_data,feature_train_data, epochs=500, callbacks=callbacks, validation_data=(feature_test_data,feature_test_data))
+
+    print(history.history.keys())
+    # summarize history for accuracy
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train','test'], loc='upper left') 
+    plt.savefig('./results/auto_encoder/auto_encoder_acc.png')
+    plt.show()
+    #  summarize history for loss plt.plot(history.history['loss']) plt.plot(history.history['val_loss']) plt.title('model loss')
+    plt.plot(history.history['loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train'], loc='upper left') 
+    plt.savefig('./results/auto_encoder/auto_encoder_loss.png')
+    plt.show()
 
     print(auto_encoder.evaluate(feature_test_data,feature_test_data))
 
@@ -52,7 +98,10 @@ def build_autoencoder(input_size):
     
     log_data_with_feature_ = pd.DataFrame(log_data_with_feature)
     log_data_with_feature_.to_csv('./dataset/after_encoded/log_data_with_feature.csv')
-
     
 if __name__ == "__main__":
     build_autoencoder(55)
+    # np.savetxt("./results/prediction_data",np.array(prediction_data))
+    # np.savetxt("./results/test_data_y",test_data_y)
+    # np.savetxt("./results/oringal_data_test_y",original_data_test_y)
+    # np.savetxt("./results/stock_data",np.array(stock_data))
