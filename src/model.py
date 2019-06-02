@@ -5,10 +5,11 @@ import keras as kr
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import r2_score, mean_squared_error
+from keras.utils import plot_model
+from keras.callbacks import TensorBoard
 
 
-def model(epochs, regularizer1, regularizer2):
+def nnmodel():
     train_data = np.array(pd.read_csv("./dataset/train/auto_encoded_train_data.csv", index_col=0))
     train_data = np.reshape(train_data, (len(train_data), 20))
     test_data = np.array(pd.read_csv("./dataset/train/auto_encoded_test_data.csv", index_col=0))
@@ -18,13 +19,15 @@ def model(epochs, regularizer1, regularizer2):
     price = np.array(pd.read_csv("./dataset/pre_processed/test_data_y.csv", index_col=0))
 
     model = kr.models.Sequential()
-    model.add(kl.Dense(20, input_dim=20, activation="tanh", activity_regularizer=kr.regularizers.l2(regularizer1)))
-    model.add(kl.Dense(20, activation="tanh", activity_regularizer=kr.regularizers.l2(regularizer2)))
+    model.add(kl.Dense(20, input_dim=20, activation="tanh", activity_regularizer=kr.regularizers.l2(0.05)))
+    model.add(kl.Dense(20, activation="tanh", activity_regularizer=kr.regularizers.l2(0.01)))
     model.add(kl.Dense(1))
 
-    model.compile(optimizer="sgd", loss="mean_squared_error",metrics=["accuracy","mse"])
-
-    history = model.fit(train_data,train_data_y, epochs=epochs, validation_data=(test_data,test_data_y))
+    model.compile(optimizer="sgd", loss="mean_squared_error",metrics=["accuracy","mse"])    
+    #plot_model(model,to_file='./model/nnmodel.png')
+    tb = TensorBoard(log_dir='./model/logs/',histogram_freq=10,batch_size=10,write_graph=True,write_grads=False, write_images=True,embeddings_freq=0)
+    callbacks= [tb]
+    history = model.fit(train_data,train_data_y, epochs=50, callbacks=callbacks, validation_data=(test_data,test_data_y))
 
 
     plt.plot(history.history['acc'])
@@ -74,5 +77,5 @@ def model(epochs, regularizer1, regularizer2):
 
 
 if __name__ == "__main__":
-    model(3, 0.05, 0.01)
+    nnmodel()
 
