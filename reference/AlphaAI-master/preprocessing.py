@@ -60,8 +60,8 @@ class PreProcessing:
         for i in range((len(self.stock_data) // 10) * 10 - 11):
             l = self.stock_data.iloc[i+11, 5]
             test_stock.append(l)
-            test = pd.DataFrame(test_stock)
-            test.to_csv("preprocessing/test_stock.csv")
+        test = pd.DataFrame(test_stock)
+        test.to_csv("preprocessing/test_stock.csv")
 
         stock_test_data = np.array(test_stock)[int(self.feature_split*len(test_stock) +
                                                self.split*(1-self.feature_split)*len(test_stock)):]
@@ -76,6 +76,6 @@ class PreProcessing:
 
 if __name__ == "__main__":
     preprocess = PreProcessing(0.8, 0.25)
-    preprocess.make_wavelet_train()
+    #preprocess.make_wavelet_train()
     preprocess.make_test_data()
 

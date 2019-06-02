@@ -29,6 +29,7 @@ def get_feature_train_dataset(stock_data):
     data_y = []
     log_data_y = []
     log_data = []
+    # 输入数据是前11天的数据，数据大小为55
     for i in range((len(stock_data)//10)*10 - 11):
         #train = []
         log_ret = []
@@ -39,16 +40,16 @@ def get_feature_train_dataset(stock_data):
             cdt = pywt.threshold(cd, np.std(cd), mode="soft")
             tx = pywt.idwt(cat, cdt, "haar")
 
-            log = np.diff(np.log(tx))*100 #求两天的差值，并求对数，用变化值
+            log = np.diff(np.log(tx)) #求两天的差值，并求对数，用变化值
             log_ret = np.append(log_ret, log)
 
         log_data.append(log_ret)
     log_data = pd.DataFrame(log_data, index=None)
     log_data.to_csv("./dataset/pre_processed/log_data.csv")
 
-    # Close价格
+    # 以Close价格作为y
     for i in range((len(stock_data) // 10) * 10 - 11):
-        y = 100*np.log(stock_data.iloc[i + 11, 5] / stock_data.iloc[i + 10, 5])
+        y = np.log(stock_data.iloc[i + 11, 5] / stock_data.iloc[i + 10, 5])
         log_data_y.append(y)
     log_data_y = pd.DataFrame(log_data_y, index=None)
     log_data_y.to_csv("./dataset/pre_processed/log_data_y.csv")
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     
     # plt.savefig('./doc/after_moving_avg.png')
     # plt.show()
-    #get_feature_train_dataset(stock_data)
+    # get_feature_train_dataset(stock_data)
     get_test_dataset()
     get_test_dataset_y()
     get_train_dataset()

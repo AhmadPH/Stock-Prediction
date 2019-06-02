@@ -15,4 +15,4 @@ def get_stock_data(ticker,start,end):
 
 
 if __name__ == "__main__":
-    get_stock_data("AAPL", "2000-01-01", "2018-10-01")
+    get_stock_data("AAPL", "2000-01-01", "2019-10-01")

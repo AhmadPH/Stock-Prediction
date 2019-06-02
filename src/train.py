@@ -24,12 +24,12 @@ def train(input_size):
     #model
     input_ = kl.Input(shape=(1,input_size))
 
-    LSTM = kl.LSTM(5, input_shape=(1, input_size), return_sequences=True, activity_regularizer=regularizers.l2(0.003),
-                       recurrent_regularizer=regularizers.l2(0), dropout=0.2, recurrent_dropout=0.2)(input_)
-    perc = kl.Dense(5, activation="sigmoid", activity_regularizer=regularizers.l2(0.005))(LSTM)
-    LSTM_2 = kl.LSTM(2, activity_regularizer=regularizers.l2(0.01), recurrent_regularizer=regularizers.l2(0.001),
-                        dropout=0.2, recurrent_dropout=0.2)(perc)
-    output_ = kl.Dense(1, activation="sigmoid", activity_regularizer=regularizers.l2(0.001))(LSTM_2)
+    LSTM = kl.LSTM(5, input_shape=(1, input_size), return_sequences=True, activity_regularizer=regularizers.l2(0.03),
+                       recurrent_regularizer=regularizers.l2(0), dropout=0.3, recurrent_dropout=0.2)(input_)
+    perc = kl.Dense(5, activation="sigmoid", activity_regularizer=regularizers.l2(0.05))(LSTM)
+    LSTM_2 = kl.LSTM(2, activity_regularizer=regularizers.l2(0.01), recurrent_regularizer=regularizers.l2(0.01),
+                        dropout=0.3, recurrent_dropout=0.2)(perc)
+    output_ = kl.Dense(1, activation="sigmoid", activity_regularizer=regularizers.l2(0.01))(LSTM_2)
 
     model = Model(input_, output_)
     model.compile(optimizer="adam", loss="mean_squared_error", metrics=["accuracy","mse"])
@@ -38,43 +38,43 @@ def train(input_size):
     tb = TensorBoard(log_dir='./model/logs/lstm/',histogram_freq=10,batch_size=10,write_graph=True,write_grads=False, write_images=True,embeddings_freq=0)
     callbacks= [tb]
     #train
-    history = model.fit(train_data,train_data_y, epochs=2000, callbacks=callbacks, validation_data=(test_data,test_data_y))
+    history = model.fit(train_data,train_data_y, epochs=50, callbacks=callbacks, validation_data=(test_data,test_data_y))
     #print(model.evaluate(test_data,test_data_y))
     print(history.history.keys())
 
-    # summarize history for accuracy
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['train','test'], loc='upper left') 
-    plt.savefig('./results/lstm/lstm_acc.png')
-    plt.show()
-    #  summarize history for loss plt.plot(history.history['loss']) plt.plot(history.history['val_loss']) plt.title('model loss')
-    plt.plot(history.history['loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train'], loc='upper left') 
-    plt.savefig('./results/lstm/lstm_loss.png')
-    plt.show()
-    # 
-    plt.plot(history.history['mean_squared_error'])
-    plt.plot(history.history['val_mean_squared_error'])
-    plt.title('model mean_squared_error')
-    plt.ylabel('mse')
-    plt.xlabel('epoch')
-    plt.legend(['train','test'], loc='upper left') 
-    plt.savefig('./results/lstm/lstm_mse.png')
-    plt.show()
+    # # summarize history for accuracy
+    # plt.plot(history.history['acc'])
+    # plt.plot(history.history['val_acc'])
+    # plt.title('model accuracy')
+    # plt.ylabel('accuracy')
+    # plt.xlabel('epoch')
+    # plt.legend(['train','test'], loc='upper left') 
+    # plt.savefig('./results/lstm/lstm_acc.png')
+    # plt.show()
+    # #  summarize history for loss plt.plot(history.history['loss']) plt.plot(history.history['val_loss']) plt.title('model loss')
+    # plt.plot(history.history['loss'])
+    # plt.title('model loss')
+    # plt.ylabel('loss')
+    # plt.xlabel('epoch')
+    # plt.legend(['train'], loc='upper left') 
+    # plt.savefig('./results/lstm/lstm_loss.png')
+    # plt.show()
+    # # 
+    # plt.plot(history.history['mean_squared_error'])
+    # plt.plot(history.history['val_mean_squared_error'])
+    # plt.title('model mean_squared_error')
+    # plt.ylabel('mse')
+    # plt.xlabel('epoch')
+    # plt.legend(['train','test'], loc='upper left') 
+    # plt.savefig('./results/lstm/lstm_mse.png')
+    # plt.show()
 
 
     original_data_test_y = np.array(pd.read_csv("./dataset/pre_processed/test_data_y.csv",index_col=0))
     stock_data=[]
     prediction_data=[]
     for i in range(len(test_data_y)):
-        prediction = (model.predict(np.reshape(test_data[i], (1, 1, input_size))))
+        prediction = (model.predict(np.reshape(test_data[i], (1,1, input_size))))
         prediction_data.append(np.reshape(prediction, (1,)))
         #prediction_corrected = (prediction_data - np.mean(prediction_data))/np.std(prediction_data)
         stock_price = np.exp(np.reshape(prediction, (1,)))*original_data_test_y[i]
@@ -91,14 +91,14 @@ def train(input_size):
     plt.title('log_prediction result')
     plt.legend()
     plt.show()
-    plt.savefig("./results/log_prediction.png")
+    plt.savefig('./results/log_prediction.png')
 
     plt.plot(original_data_test_y,label='original')
     plt.plot(stock_data,label='predict')
     plt.title('prediction result')
     plt.legend()
     plt.show()
-    plt.savefig("./results/prediction.png")
+    plt.savefig('./results/prediction.png')
 
 
 

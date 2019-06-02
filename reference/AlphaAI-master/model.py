@@ -22,27 +22,26 @@ class NeuralNetwork:
         out = kl.Dense(1, activation="sigmoid", activity_regularizer=regularizers.l2(0.001))(lstm2)
 
         model = Model(input_data, out)
-        model.compile(optimizer="adam", loss="mean_squared_error", metrics=["mse"])
+        model.compile(optimizer="adam", loss="mean_squared_error", metrics=["mse","accuracy"])
 
         # load data
 
-        train = np.reshape(np.array(pd.read_csv("features/autoencoded_train_data.csv", index_col=0)),
-                           (len(np.array(pd.read_csv("features/autoencoded_train_data.csv"))), 1, self.input_shape))
-        train_y = np.array(pd.read_csv("features/autoencoded_train_y.csv", index_col=0))
+        train = np.reshape(np.array(pd.read_csv("60_return_forex/encoded_return_train_data.csv", index_col=0)),
+                           (len(np.array(pd.read_csv("60_return_forex/encoded_return_train_data.csv"))), 1, self.input_shape))
+        train_y = np.array(pd.read_csv("forex_y/log_train_y.csv", index_col=0))
         # train_stock = np.array(pd.read_csv("train_stock.csv"))
 
+        test_x = np.reshape(np.array(pd.read_csv("60_return_forex/encoded_return_test_data.csv", index_col=0)),
+                            (len(np.array(pd.read_csv("60_return_forex/encoded_return_test_data.csv"))), 1, self.input_shape))
+        test_y = np.array(pd.read_csv("forex_y/log_test_y.csv", index_col=0))
         # train model
 
-        model.fit(train, train_y, epochs=100)
+        history = model.fit(train, train_y, epochs=50, validation_data=(test_x,test_y))
 
         model.save("models/model.h5", overwrite=True, include_optimizer=True)
-
-        test_x = np.reshape(np.array(pd.read_csv("features/autoencoded_test_data.csv", index_col=0)),
-                            (len(np.array(pd.read_csv("features/autoencoded_test_data.csv"))), 1, self.input_shape))
-        test_y = np.array(pd.read_csv("features/autoencoded_test_y.csv", index_col=0))
         # test_stock = np.array(pd.read_csv("test_stock.csv"))
 
-        stock_data_test = np.array(pd.read_csv("stock_data_test.csv", index_col=0))
+        stock_data_test = np.array(pd.read_csv("forex_y/test_price.csv", index_col=0))
 
         print(model.evaluate(test_x, test_y))
         prediction_data = []
@@ -69,6 +68,10 @@ class NeuralNetwork:
             plt.plot(prediction_data)
             # print(prediction_data)
             plt.plot(test_y)
+            plt.show()
+            plt.plot(stock_data, label='prdiction')
+            plt.plot(stock_data_test, label='original')
+            plt.legend()
             plt.show()
 
 

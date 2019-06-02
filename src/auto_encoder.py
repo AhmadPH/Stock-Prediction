@@ -63,20 +63,20 @@ def build_autoencoder(input_size):
     tb = TensorBoard(log_dir='./model/logs/auto_encoder/',histogram_freq=10,batch_size=11,write_graph=True,write_grads=False, write_images=True,embeddings_freq=0)
     callbacks= [tb]
 
-    auto_encoder.compile(optimizer='adam',loss='mean_squared_error',metrics=['accuracy'])
-    history=auto_encoder.fit(feature_train_data,feature_train_data, epochs=500, callbacks=callbacks, validation_data=(feature_test_data,feature_test_data))
+    auto_encoder.compile(optimizer='adam',loss='mean_squared_error',metrics=['accuracy','mse'])
+    history=auto_encoder.fit(feature_train_data,feature_train_data, epochs=50, callbacks=callbacks, validation_data=(feature_test_data,feature_test_data))
 
     print(history.history.keys())
-    # summarize history for accuracy
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
+    
+    plt.plot(history.history['mean_squared_error'])
+    plt.plot(history.history['val_mean_squared_error'])
+    plt.title('model mse')
+    plt.ylabel('mse')
     plt.xlabel('epoch')
     plt.legend(['train','test'], loc='upper left') 
-    plt.savefig('./results/auto_encoder/auto_encoder_acc.png')
+    plt.savefig('./results/auto_encoder/auto_encoder_mse.png')
     plt.show()
-    #  summarize history for loss plt.plot(history.history['loss']) plt.plot(history.history['val_loss']) plt.title('model loss')
+
     plt.plot(history.history['loss'])
     plt.title('model loss')
     plt.ylabel('loss')
@@ -91,8 +91,8 @@ def build_autoencoder(input_size):
     log_data_with_feature= []
     for i in range(len(log_data)):
         row = np.array(log_data.iloc[i,:])
-        values=np.reshape(row,(1,1,55))
-        coded = encoder.predict(values)
+        row = np.reshape(row,(1,1,55))
+        coded = encoder.predict(row)
         coded = np.reshape(coded,(20,))
         log_data_with_feature.append(coded)
     
