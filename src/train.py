@@ -9,7 +9,6 @@ from keras.callbacks import TensorBoard
 from keras import regularizers
 
 plt.rcParams["figure.figsize"] = [12.8, 9.6]
-#from bokeh.plotting import output_file, figure, show
 
 def train(input_size):    
     
@@ -24,11 +23,10 @@ def train(input_size):
     #model
     input_ = kl.Input(shape=(1,input_size))
 
-    LSTM = kl.LSTM(5, input_shape=(1, input_size), return_sequences=True, activity_regularizer=regularizers.l2(0.03),
-                       recurrent_regularizer=regularizers.l2(0), dropout=0.3, recurrent_dropout=0.2)(input_)
-    perc = kl.Dense(5, activation="sigmoid", activity_regularizer=regularizers.l2(0.05))(LSTM)
-    LSTM_2 = kl.LSTM(2, activity_regularizer=regularizers.l2(0.01), recurrent_regularizer=regularizers.l2(0.01),
-                        dropout=0.3, recurrent_dropout=0.2)(perc)
+    #LSTM 输入必须是3D向量，(batch_size, timesteps, input_dim)
+    LSTM = kl.LSTM(5, input_shape=(1, input_size), return_sequences=True, activity_regularizer=regularizers.l2(0.03),recurrent_regularizer=regularizers.l2(0), dropout=0.5, recurrent_dropout=0.2)(input_)
+    perc = kl.Dense(5, activation="tanh", activity_regularizer=regularizers.l2(0.05))(LSTM)
+    LSTM_2 = kl.LSTM(2, activity_regularizer=regularizers.l2(0.01), recurrent_regularizer=regularizers.l2(0.01),dropout=0.3, recurrent_dropout=0.2)(perc)
     output_ = kl.Dense(1, activation="sigmoid", activity_regularizer=regularizers.l2(0.01))(LSTM_2)
 
     model = Model(input_, output_)
@@ -39,8 +37,6 @@ def train(input_size):
     callbacks= [tb]
     #train
     history = model.fit(train_data,train_data_y, epochs=50, callbacks=callbacks, validation_data=(test_data,test_data_y))
-    #print(model.evaluate(test_data,test_data_y))
-    print(history.history.keys())
 
     # # summarize history for accuracy
     # plt.plot(history.history['acc'])
@@ -81,24 +77,24 @@ def train(input_size):
         stock_data.append(stock_price[0])
     stock_data[:] = [i - (float(stock_data[0])-float(original_data_test_y[0])) for i in stock_data]
 
-    np.savetxt("./results/prediction_data",np.array(prediction_data))
-    np.savetxt("./results/test_data_y",test_data_y)
-    np.savetxt("./results/oringal_data_test_y",original_data_test_y)
-    np.savetxt("./results/stock_data",np.array(stock_data))
+    # np.savetxt("./results/prediction_data",np.array(prediction_data))
+    # np.savetxt("./results/test_data_y",test_data_y)
+    # np.savetxt("./results/oringal_data_test_y",original_data_test_y)
+    # np.savetxt("./results/stock_data",np.array(stock_data))
 
     plt.plot(prediction_data,label='predict')
     plt.plot(test_data_y,label='original')
     plt.title('log_prediction result')
     plt.legend()
     plt.show()
-    plt.savefig('./results/log_prediction.png')
+    #plt.savefig('./results/log_prediction.png')
 
     plt.plot(original_data_test_y,label='original')
     plt.plot(stock_data,label='predict')
     plt.title('prediction result')
     plt.legend()
     plt.show()
-    plt.savefig('./results/prediction.png')
+    #plt.savefig('./results/prediction.png')
 
 
 

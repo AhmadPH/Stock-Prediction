@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <title>基于LSTM-RNN的股票预测研究</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+    </head>
+    <body>
+        <h1 id="%E5%9F%BA%E4%BA%8Elstm-rnn%E7%9A%84%E8%82%A1%E7%A5%A8%E9%A2%84%E6%B5%8B%E7%A0%94%E7%A9%B6">基于LSTM-RNN的股票预测研究</h1>
+<p>刘茁 1500011438 物理学院<br>
+胡承开 1800932142</p>
+<h2 id="0-%E7%AE%80%E4%BB%8B">0. 简介</h2>
+<p>        人们一直以来都期望可以预测股票未来价值，尽管这非常困难。这种困难源于股票的非平稳行为且没有任何明确的形式。因此，最好通过分析金融股票数据进行预测。为了处理大数据集，当前普遍使用滑动平均方法。然而，利用小波变换代替移动平均去噪股票信号，可以使金融数据更平滑，更准确地分解。</p>
+<p>       LSTM(Long Short-Term Memory)是长短期记忆网络，是一种时间递归神经网络，适合于处理和预测时间序列中间隔和延迟相对较长的重要事件。
+LSTM已经在科技领域有了多种应用。通过这些方法的实施，我们可以得到更准确的股票预测，进而增加利润。</p>
+<h2 id="1-%E8%8E%B7%E5%8F%96%E8%82%A1%E7%A5%A8%E6%95%B0%E6%8D%AE">1. 获取股票数据</h2>
+<p>       使用雅虎财经API获取，以苹果公司2000年1月1日-2019年1月1日的数据为例。共4884个样本，每个样本包括日期、开盘价、最低价、最高价、收盘价、已调整收盘价和成交量。
+       利用数据制作K线图</p>
+<center>
+<img src='../stock_sample.png' width=80%>
+<p>k线图，红色代表上涨，绿色代表下跌，柱形区域表示收盘价和开盘价，细线是最高价和最低价。</p>
+<img src='../stock.png' >
+2000年-2019年总体数据图
+<img src='../stock_test.png' >
+测试用数据图
+</center>
+<h2 id="2-%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86">2. 数据预处理</h2>
+<ul>
+<li>去噪声</li>
+</ul>
+<p>       任何给定的股票都与高波动性、小样本量、非平稳和非线性行为以及大量高噪声变量有关，这些都使得其分析变得困难。高噪声数据导致股票历史交易价格与未来价格之间存在不完全信息缺口。目前，当涉及到处理和消除金融数据的时候，行业标准是使用所谓的滑动平均值。虽然滑动平均值已被证明是处理数据的一种可行方法，但我们提出了一种通过小波去噪程序进行替换的方法，这将产生改进的结果。利用小波变换代替滑动平均值去噪股票信号，可以使金融数据更平滑，更准确地分解。</p>
+<p>       小波变换是一种数据分析技术，其中数据集被转换为小波域，并然后分成低频和高频部分。认为大部分数据的噪声都隐藏在小波域的高频部分。通过去噪程序，可以隔离和消除几乎每只股票中存在的许多不希望出现的噪声，所有这些噪声都有助于股票的波动性，但不一定表示股票的特征。</p>
+<p>       具体的做法是，先采用haar波形的小波变换</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>X</mi><mi>ω</mi></msub><mo>(</mo><mi>a</mi><mo separator="true">,</mo><mi>b</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msqrt><mi>a</mi></msqrt></mfrac><mo>∫</mo><mi>x</mi><mo>(</mo><mi>t</mi><mo>)</mo><mi>ψ</mi><mrow><mo fence="true">(</mo><mfrac><mrow><mi>t</mi><mo>−</mo><mi>b</mi></mrow><mi>a</mi></mfrac><mo fence="true">)</mo></mrow><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">X_{\omega}(a,b) = \frac{1}{\sqrt{a}}\int x(t)\psi \left(\frac{t-b}{a} \right) dt
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">ω</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault">a</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.40003em;vertical-align:-0.95003em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.30972em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8002800000000001em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord mathdefault">a</span></span></span><span style="top:-2.76028em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,
+-10,-9.5,-14c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54c44.2,-33.3,65.8,
+-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10s173,378,173,378c0.7,0,
+35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429c69,-144,104.5,-217.7,106.5,
+-221c5.3,-9.3,12,-14,20,-14H400000v40H845.2724s-225.272,467,-225.272,467
+s-235,486,-235,486c-2.7,4.7,-9,7,-19,7c-6,0,-10,-1,-12,-3s-194,-422,-194,-422
+s-65,47,-65,47z M834 80H400000v40H845z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.23972em;"><span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9300000000000002em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop op-symbol large-op" style="margin-right:0.44445em;position:relative;top:-0.0011249999999999316em;">∫</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">x</span><span class="mopen">(</span><span class="mord mathdefault">t</span><span class="mclose">)</span><span class="mord mathdefault" style="margin-right:0.03588em;">ψ</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.37144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">a</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">d</span><span class="mord mathdefault">t</span></span></span></span></span></p>
+<p>去除标准差以外的点，再做逆变换。</p>
+<pre><code><div>    (ca, cd) = pywt.dwt(x, &quot;haar&quot;)
+    cat = pywt.threshold(ca, np.std(ca), mode=&quot;soft&quot;)
+    cdt = pywt.threshold(cd, np.std(cd), mode=&quot;soft&quot;)
+    tx = pywt.idwt(cat, cdt, &quot;haar&quot;)
+</div></code></pre>
+<p>       下面的例子展示了小波变换和滑动平均对数据集的去除一个标准差以外的数据结果以及使用新的系数生成平滑后的数据结果。我们可以观察到，滑动平均去噪后的股票与小波去噪后的股票相比更平滑，但滑动平均去噪后的股票过度平滑。小波去噪生成的数据误差明显较小，提高了预测精度。</p>
+<center>
+<img src='after_wavelet.png' width=80%>
+<p>小波变换</p>
+<img src='after_moving_avg.png' width=80%>
+<p>滑动平均</p>
+<img src='after_wavelet_overall.png' width=80%>
+<p>整体处理效果</p>
+</center>
+<ul>
+<li>数据使用及划分
+<ul>
+<li>使用相邻之间股价差异的对数值作为训练和测试数据</li>
+<li>取开盘、收盘、最高、最低和调整后收盘价五种属性，取前十二天之间相邻两天的数据作为一组输入集，共55维。</li>
+<li>前1/4作为自编码器的训练数据</li>
+<li>后3/4的前80%为LSTM训练数据，后20%为测试集</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-%E7%94%A8%E6%A0%88%E5%BC%8F%E8%87%AA%E7%BC%96%E7%A0%81%E5%99%A8%E6%9D%A5%E6%8F%90%E5%8F%96%E7%89%B9%E5%BE%81">3. 用栈式自编码器来提取特征</h2>
+<p>       通常在机器学习中，往往需要利用领域知识来构建特征提取的方法，也可以使用受限玻尔兹曼机来自动提取特征。此项目采用的是栈式自编码器，由多个自编码器（自编码器是一种能够通过无监督学习，学到输入数据高效表示的人工神经网络。）堆叠而成，主要是考虑到栈式自编码器的可解释性更好。栈式自编码器把数据先从高维压缩到低维、然后再扩展到高维，这个过程的压缩部分就是很有效的一种特征提取的方法。此项目采用的栈式自编码器由3个自编码器级联构成。</p>
+<center>
+<img src='../model/auto_encoder_new.png' width=15%>
+<img src='../model/auto_encoder_tb.png'>
+</center>
+<p>输入是55维数据，提取特征后压缩为20维。</p>
+<h2 id="4-%E8%AE%AD%E7%BB%83lstm%E6%A8%A1%E5%9E%8B">4. 训练LSTM模型</h2>
+<p>       LSTM是RNN的特殊类型，RNN由于梯度消失的原因只能有短期记忆，LSTM由于各种结构的cell和gate的存在将短期记忆与长期记忆结合起来，可以有效的捕捉相隔很远的两个node之间的关系，从而在时间序列的预测问题上效果非常好。</p>
+<ul>
+<li>训练模型特征如下
+<ul>
+<li>20维特征值输入</li>
+<li>第一层LSTM输出5维，dense输出5维</li>
+<li>第二层LSTM输出2维，dense输出最终第二日收盘价差值的对数值</li>
+<li>每层采用L2正则化和drop_out方法</li>
+<li>优化方法为adam，动态调整学习率和梯度</li>
+<li>采用mean_square_loss作为损失函数</li>
+</ul>
+</li>
+</ul>
+<center>
+<img src='../model/model.png' width=10%>
+<img src='../model/model_tb.png'>
+</center>
+<h2 id="5-%E8%AE%AD%E7%BB%83%E7%BB%93%E6%9E%9C">5. 训练结果</h2>
+<ul>
+<li>作为股票数据集，训练几乎不能提升测试集的准确率(accuracy)</li>
+</ul>
+<center>
+<img src='../results/lstm/lstm_acc.png' width=80%>
+</center>
+<ul>
+<li>但是可以用mean_squared_error观测训练过程</li>
+</ul>
+<center>
+<img src='../results/lstm/lstm_mse.png' width=80%>
+</center>
+<ul>
+<li>训练步长200步后，在测试集上第二天收盘股价对数值的预测和实际的对比图如下</li>
+</ul>
+ <center>
+<img src='../results/log_prediction_new.png' >
+</center> 
+<ul>
+<li>反映为收盘股价对比图如下</li>
+</ul>
+ <center>
+<img src='../results/prediction_new.png' >
+</center> 
+<ul>
+<li>训练50步，100步，200步对比图分别如下</li>
+</ul>
+ <center>
+<img src='../results/prediction_50.png'  width=50%>
+<img src='../results/prediction_100.png' width=50%>
+<img src='../results/prediction_150.png' width=50% >
+</center>  
+<h2 id="6-%E8%AE%A8%E8%AE%BA">6. 讨论</h2>
+<p>       该模型来源于论文 <a href="https://arxiv.org/abs/1904.08459%E3%80%82">https://arxiv.org/abs/1904.08459。</a> 事实上，在着手实现这个项目的时候，发现了该模型存在根本性的问题。</p>
+<ul>
+<li>首先，利用小波变换处理数据有利用未来数据的嫌疑，应当仅对训练集做处理，测试集不应当用小波变换处理。</li>
+<li>第二，使用mean_squared_error作为损失函数并不是一个很好的选择。事实上，在训练的时候我发现，使用更复杂的lstm模型会让预测值变的平凡，即<strong>预测相对差值对数值趋近于0，即拿上一天的数据作为当天数据的预测值</strong>，这显然是不妥的，但是由于我们训练的是变化值，这样的的确确会使mean_squared_error变得更小，而且由于作图时是基于前一天的数据画的，这样看起来预测的值和实际值也很接近，最终趋于下图这样。</li>
+</ul>
+ <center>
+<img src='../results/log_prediction_200.png' width=80%>
+</center>  
+<ul>
+<li>在完成这个模型后我暂时也没有更多的时间去研究更新的方法了。这个模型我认为就仅仅能当作是一个预测的玩具，对我本人来说也是一个深度学习入门级的练习。</li>
+</ul>
+
+    </body>
+    </html>
